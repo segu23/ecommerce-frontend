@@ -21,18 +21,11 @@ export default function DocsPage() {
 
 	useEffect(() => {
 		const productToSearch = searchParams.get("search");
-		axios.get(`http://localhost:8080/products/search?name=${productToSearch != undefined ? productToSearch : ""}`)
-			.then(response => {
+		axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}products/search?name=${productToSearch != undefined ? productToSearch : ""}`)
+			.then((response: any) => {
 				setProducts(response.data)
 			})
 	}, []);
-
-	let argentinianPeso = new Intl.NumberFormat('es-AR', {
-		style: 'currency',
-		currency: 'ARS',
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 2,
-	});
 
 	return (
 		<div className="flex">
@@ -56,31 +49,7 @@ export default function DocsPage() {
 			</aside>
 			<div className="flex gap-8 flex-wrap w-[928px]">
 				{products.map((item) => (
-					<Card shadow="sm" key={item.name} isPressable style={{ width: "288px", height: "auto" }}>
-						<CardBody className="overflow-visible p-0">
-							<Image
-								shadow="sm"
-								radius="lg"
-								width="100%"
-								height="200px"
-								className="w-full object-cover h-100"
-								src="https://nextui.org/images/fruit-1.jpeg"
-							/>
-						</CardBody>
-						<CardFooter className="p-[20px] block" style={{textAlign: "start"}}>
-
-							<s>
-								<span>{argentinianPeso.format(item.price)}</span>
-							</s>
-							<div className="text-2xl flex items-center">
-								<span>{argentinianPeso.format(item.price)}</span>
-								<span className="text-base pl-[4px] text-emerald-600">55% OFF</span>
-							</div>
-							<div>
-								<p className="line-clamp-2">{item.name}</p>
-							</div>
-						</CardFooter>
-					</Card>
+					<ProductCard item={item} key={item.name} />
 				))}
 			</div>
 		</div>

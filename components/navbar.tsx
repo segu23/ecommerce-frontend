@@ -71,8 +71,8 @@ export const Navbar = () => {
 						if (e == "") {
 							setActualSearchResponse([])
 						} else {
-							axios.get(`http://localhost:8080/products/search?name=${value}`)
-								.then(response => {
+							axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}products/search?name=${value}`)
+								.then((response: any) => {
 									setActualSearchResponse(response.data.map((item: any) => item.name))
 								})
 						}

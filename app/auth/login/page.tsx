@@ -21,18 +21,18 @@ export default function LoginPage() {
 	const router = useRouter()
 
 	function sendLogin() {
-		axios.post('http://localhost:8080/auth/login', {
+		axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}auth/login`, {
 			email: email,
 			password: password,
 			twoFactorCode: ""
 		})
-			.then(function (response) {
+			.then(function (response: any) {
 				console.log(response.data.user)
 				localStorage.setItem("token", response.data.token)
 				localStorage.setItem("userData", JSON.stringify(response.data.user))
 				router.push("/profile")
 			})
-			.catch(function (error) {
+			.catch(function (error: any) {
 				Swal.fire({
 					title: "Ha ocurrido un error",
 					text: error.response.data.error,

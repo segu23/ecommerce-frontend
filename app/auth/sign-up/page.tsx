@@ -22,17 +22,17 @@ export default function SignUpPage() {
 	const toggleVisibility = () => setIsVisible(!isVisible);
 
 	function sendRegister(){
-		axios.post('http://localhost:8080/auth/register', {
+		axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}auth/register`, {
 			email: email,
 			password: password,
 			name: name,
 			firstName: firstName,
 			lastName: lastName,
 		  })
-		  .then(function (response) {
+		  .then(function (response: any) {
 			console.log(response);
 		  })
-		  .catch(function (error) {
+		  .catch(function (error: any) {
 			console.log(error.response.data)
 			Swal.fire({
 				title: "Ha ocurrido un error",

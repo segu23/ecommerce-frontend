@@ -1,144 +1,140 @@
+"use client"
+
 import {
 	Navbar as NextUINavbar,
 	NavbarContent,
-	NavbarMenu,
-	NavbarMenuToggle,
 	NavbarBrand,
 	NavbarItem,
-	NavbarMenuItem,
 } from "@nextui-org/navbar";
 import { Button } from "@nextui-org/button";
 import { Kbd } from "@nextui-org/kbd";
 import { Link } from "@nextui-org/link";
 import { Input } from "@nextui-org/input";
 
-import { link as linkStyles } from "@nextui-org/theme";
 
-import { siteConfig } from "@/config/site";
-import NextLink from "next/link";
-import clsx from "clsx";
 
-import { ThemeSwitch } from "@/components/theme-switch";
 import {
-	TwitterIcon,
-	GithubIcon,
-	DiscordIcon,
-	HeartFilledIcon,
 	SearchIcon,
 } from "@/components/icons";
 
-import { Logo } from "@/components/icons";
+import { useEffect, useState } from "react";
+import { User as UserType } from "@/types";
+import { User } from "@nextui-org/user";
+import axios from "axios";
+import { useSearchParams } from "next/navigation";
 
 export const Navbar = () => {
+	const [loggedIn, setLoggedIn] = useState(false);
+	const [userData, setUserData] = useState<UserType>();
+	const [focusing, setFocusing] = useState(false);
+	let typingTimeout: any = null;
+	const [actualSearchResponse, setActualSearchResponse] = useState([]);
+
+	const searchParams = useSearchParams();
+	const searchText = searchParams.get("search");
+	const [value, setValue] = useState<string>(searchText != null ? searchText : "");
+
+	useEffect(() => {
+		const cachedUserData = localStorage.getItem("userData");
+		if (cachedUserData != null) {
+			setUserData(JSON.parse(cachedUserData))
+			setLoggedIn(true);
+		}
+	}, [])
+
 	const searchInput = (
-		<Input
-			aria-label="Search"
-			classNames={{
-				inputWrapper: "bg-default-100",
-				input: "text-sm",
-			}}
-			endContent={
-				<Kbd className="hidden lg:inline-block" keys={["command"]}>
-					K
-				</Kbd>
+		<>
+			<Input
+				aria-label="Search"
+				classNames={{
+					inputWrapper: "bg-default-100",
+					input: "text-sm",
+				}}
+				endContent={
+					<Kbd className="hidden lg:inline-block" keys={["enter"]} />
+				}
+				labelPlacement="outside"
+				placeholder="Search..."
+				startContent={
+					<SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
+				}
+				onKeyDown={e => {
+					if (value.trim() !== "" && e.code == "Enter") {
+						window.location.href = (`/products?search=${encodeURIComponent(value.trim())}`);
+					}
+				}}
+				value={`${value}`}
+				onValueChange={e => {
+					setValue(e);
+					clearTimeout(typingTimeout)
+					typingTimeout = setTimeout(() => {
+						if (e == "") {
+							setActualSearchResponse([])
+						} else {
+							axios.get(`http://localhost:8080/products/search?name=${value}`)
+								.then(response => {
+									setActualSearchResponse(response.data.map((item: any) => item.name))
+								})
+						}
+					}, 350)
+				}
+				}
+				onBlur={e => setFocusing(false)}
+				onFocus={e => setFocusing(true)}
+				type="search"
+			/>
+			{focusing == true && actualSearchResponse.length > 0 ?
+				<div style={{ position: "relative", display: "block", top: "-31px", background: "white", zIndex: "-1", paddingTop: "15px", width: "100%", borderRadius: "15px" }}>
+					<ul>
+						{actualSearchResponse.map((name) =>
+							<li style={{ padding: "5px 10px" }} key={name}>
+								<Link href={`/products?search=${name}`}>{name}</Link>
+							</li>
+						)}
+					</ul>
+				</div>
+				:
+				<></>
 			}
-			labelPlacement="outside"
-			placeholder="Search..."
-			startContent={
-				<SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
-			}
-			type="search"
-		/>
+		</>
 	);
 
 	return (
-		<NextUINavbar maxWidth="xl" position="sticky">
-			<NavbarContent className="basis-1/5 sm:basis-full" justify="start">
-				<NavbarBrand as="li" className="gap-3 max-w-fit">
-					<NextLink className="flex justify-start items-center gap-1" href="/">
-						<Logo />
-						<p className="font-bold text-inherit">ACME</p>
-					</NextLink>
-				</NavbarBrand>
-				<ul className="hidden lg:flex gap-4 justify-start ml-2">
-					{siteConfig.navItems.map((item) => (
-						<NavbarItem key={item.href}>
-							<NextLink
-								className={clsx(
-									linkStyles({ color: "foreground" }),
-									"data-[active=true]:text-primary data-[active=true]:font-medium"
-								)}
-								color="foreground"
-								href={item.href}
-							>
-								{item.label}
-							</NextLink>
-						</NavbarItem>
-					))}
-				</ul>
-			</NavbarContent>
-
-			<NavbarContent
-				className="hidden sm:flex basis-1/5 sm:basis-full"
-				justify="end"
-			>
-				<NavbarItem className="hidden sm:flex gap-2">
-					<Link isExternal href={siteConfig.links.twitter} aria-label="Twitter">
-						<TwitterIcon className="text-default-500" />
-					</Link>
-					<Link isExternal href={siteConfig.links.discord} aria-label="Discord">
-						<DiscordIcon className="text-default-500" />
-					</Link>
-					<Link isExternal href={siteConfig.links.github} aria-label="Github">
-						<GithubIcon className="text-default-500" />
-					</Link>
-					<ThemeSwitch />
-				</NavbarItem>
-				<NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
-				<NavbarItem className="hidden md:flex">
-					<Button
-            isExternal
-						as={Link}
-						className="text-sm font-normal text-default-600 bg-default-100"
-						href={siteConfig.links.sponsor}
-						startContent={<HeartFilledIcon className="text-danger" />}
-						variant="flat"
-					>
-						Sponsor
-					</Button>
-				</NavbarItem>
-			</NavbarContent>
-
-			<NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
-				<Link isExternal href={siteConfig.links.github} aria-label="Github">
-					<GithubIcon className="text-default-500" />
-				</Link>
-				<ThemeSwitch />
-				<NavbarMenuToggle />
-			</NavbarContent>
-
-			<NavbarMenu>
+		<NextUINavbar maxWidth="xl">
+			<NavbarBrand>
+				<Link href="/products" className="text-black"><p className="font-bold text-inherit">segulibre</p></Link>
+			</NavbarBrand>
+			<NavbarContent className="hidden sm:flex gap-4 flex-col pt-3">
 				{searchInput}
-				<div className="mx-4 mt-2 flex flex-col gap-2">
-					{siteConfig.navMenuItems.map((item, index) => (
-						<NavbarMenuItem key={`${item}-${index}`}>
-							<Link
-								color={
-									index === 2
-										? "primary"
-										: index === siteConfig.navMenuItems.length - 1
-										? "danger"
-										: "foreground"
-								}
-								href="#"
-								size="lg"
-							>
-								{item.label}
-							</Link>
-						</NavbarMenuItem>
-					))}
-				</div>
-			</NavbarMenu>
+			</NavbarContent>
+			<NavbarContent justify="end">
+				{loggedIn ?
+					<>
+						<User
+							name={userData?.firstName + " " + userData?.lastName}
+							description={(
+								<Link href="/profile" size="sm" isExternal>
+									@{userData?.name}
+								</Link>
+							)}
+							avatarProps={{
+								src: "https://avatars.githubusercontent.com/u/30373425?v=4"
+							}}
+						/>
+					</>
+					:
+					<>
+						<NavbarItem className="flex">
+							<Link href="/auth/login">Login</Link>
+						</NavbarItem>
+						<NavbarItem>
+							<Button as={Link} color="primary" href="/auth/sign-up" variant="flat">
+								Sign Up
+							</Button>
+						</NavbarItem>
+					</>
+				}
+			</NavbarContent>
 		</NextUINavbar>
 	);
 };

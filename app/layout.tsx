@@ -30,29 +30,29 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang="en" suppressHydrationWarning className="bg-slate-100 font-sans">
 			<head />
 			<body
 				className={clsx(
-					"min-h-screen bg-background font-sans antialiased",
+					"min-h-screen antialiased",
 					fontSans.variable
 				)}
 			>
-				<Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+				<Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
 					<div className="relative flex flex-col h-screen">
 						<Navbar />
-						<main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
+						<main className="h-auto">
 							{children}
 						</main>
 						<footer className="w-full flex items-center justify-center py-3">
 							<Link
 								isExternal
 								className="flex items-center gap-1 text-current"
-								href="https://nextui-docs-v2.vercel.app?utm_source=next-app-template"
-								title="nextui.org homepage"
+								href="https://www.linkedin.com/in/segundo-schmidt-b07053206/"
+								title="Segundo Schmidt Linkedin"
 							>
-								<span className="text-default-600">Powered by</span>
-								<p className="text-primary">NextUI</p>
+								<span className="text-default-600">Copyright © 2023 - {new Date().getFullYear()}</span>
+								<p className="text-primary">Segundo Schmidt</p>
 							</Link>
 						</footer>
 					</div>

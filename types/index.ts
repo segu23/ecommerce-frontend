@@ -38,7 +38,7 @@ export type RegisterResponse = {
   user: User;
 }
 
-export interface Pageable {
+export type Pageable = {
   sort: {
       sorted: boolean;
       unsorted: boolean;

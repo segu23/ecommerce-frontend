@@ -10,25 +10,47 @@ import { Button } from "@nextui-org/button";
 import { Kbd } from "@nextui-org/kbd";
 import { Link } from "@nextui-org/link";
 import { Input } from "@nextui-org/input";
-
-
-
 import {
 	SearchIcon,
 } from "@/components/icons";
-
+import { HiMail } from "react-icons/hi";
 import { useEffect, useState } from "react";
 import { User as UserType } from "@/types";
 import { User } from "@nextui-org/user";
-import axios from "axios";
 import { useSearchParams } from "next/navigation";
+import { getProducts } from "@/services/ProductServices";
+import { ThemeSwitch } from "./theme-switch";
+import { Badge } from "@nextui-org/badge";
+import { NotificationIcon } from "./notificationIcon";
+import { CartIcon } from "./cartIcon";
+import { Popover, PopoverContent, PopoverTrigger } from "@nextui-org/popover";
+import Notification from "./notification";
+
+
+const notifications = [
+	{
+		"icon": <HiMail/>		,
+		"title": "Hoy Especial Deco Navideña 🎄",
+		"description": "Los mejores Adornos, Arbolitos, Bebidas y Cajas Navideñas con descuentos INCREÍBLES y Envío en 24 hs 🛵💨 ¡Ideal para las fiestas!",
+		"date": "",
+		"readState": true
+	},
+	{
+		"icon": <HiMail/>		,
+		"title": "Cuponazos Navideños 🎁🎄",
+		"description": "Aprovechá HOY $5.000 OFF en TVs y $3.000 OFF en Parlantes seleccionados + hasta 30% OFF + Hasta 9 CUOTAS sin interés 🔥 ",
+		"date": "",
+		"readState": false
+	},
+
+]
 
 export const Navbar = () => {
 	const [loggedIn, setLoggedIn] = useState(false);
 	const [userData, setUserData] = useState<UserType>();
 	const [focusing, setFocusing] = useState(false);
 	let typingTimeout: any = null;
-	const [actualSearchResponse, setActualSearchResponse] = useState([]);
+	const [actualSearchResponse, setActualSearchResponse] = useState([] as string[]);
 
 	const searchParams = useSearchParams();
 	const searchText = searchParams.get("search");
@@ -71,9 +93,9 @@ export const Navbar = () => {
 						if (e == "") {
 							setActualSearchResponse([])
 						} else {
-							axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}products/search?name=${value}`)
-								.then((response: any) => {
-									setActualSearchResponse(response.data.map((item: any) => item.name))
+							getProducts(e, 0, 5)
+								.then(productsResponse => {
+									setActualSearchResponse(productsResponse.content.map((item: any) => item.name))
 								})
 						}
 					}, 350)
@@ -100,14 +122,15 @@ export const Navbar = () => {
 	);
 
 	return (
-		<NextUINavbar maxWidth="xl">
+		<NextUINavbar maxWidth="xl" isBordered>
 			<NavbarBrand>
-				<Link href="/products" className="text-black"><p className="font-bold text-inherit">segulibre</p></Link>
+				<Link href="/products"><p className="font-bold text-inherit">segulibre</p></Link>
 			</NavbarBrand>
 			<NavbarContent className="hidden sm:flex gap-4 flex-col pt-3">
 				{searchInput}
 			</NavbarContent>
 			<NavbarContent justify="end">
+				<ThemeSwitch />
 				{loggedIn ?
 					<>
 						<User
@@ -121,6 +144,35 @@ export const Navbar = () => {
 								src: "https://avatars.githubusercontent.com/u/30373425?v=4"
 							}}
 						/>
+						<div className="flex items-center gap-3">
+							<Popover placement="bottom-end">
+								<PopoverTrigger>
+									<button className="outline-none">
+										<Badge color="danger" content={5} shape="circle">
+											<NotificationIcon className="fill-current" size={30} />
+										</Badge>
+									</button>
+								</PopoverTrigger>
+								<PopoverContent>
+									<div >
+										<span>Notificaciones</span>
+									</div>
+									{notifications.map((notification) => <Notification data={notification} />)}
+								</PopoverContent>
+							</Popover>
+							<Popover placement="bottom-end">
+								<PopoverTrigger>
+									<button className="outline-none">
+										<Badge color="danger" content={50} shape="circle">
+											<CartIcon size={30} />
+										</Badge>
+									</button>
+								</PopoverTrigger>
+								<PopoverContent>
+									{notifications.map((notification) => <Notification data={notification} />)}
+								</PopoverContent>
+							</Popover>
+						</div>
 					</>
 					:
 					<>

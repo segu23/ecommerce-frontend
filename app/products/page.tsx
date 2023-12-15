@@ -1,12 +1,22 @@
 "use client"
 
+import Loader from "@/components/loader";
 import ProductCard from "@/components/productCard";
-import { Product } from "@/types";
-import { Card, CardBody, CardFooter } from "@nextui-org/card";
-import { Image } from "@nextui-org/image";
-import axios from "axios";
-import { useRouter, useSearchParams } from "next/navigation";
+import ProductCardSkeleton from "@/components/productCardSkeleton";
+import { getProducts } from "@/services/ProductServices";
+import { PaginationResponse, Product } from "@/types";
+import { Card } from "@nextui-org/card";
+import { Pagination } from "@nextui-org/pagination";
+import { CircularProgress } from "@nextui-org/progress";
+import { Skeleton } from "@nextui-org/skeleton";
+import dynamic from "next/dynamic";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import { Popover, PopoverContent, PopoverTrigger } from "@nextui-org/popover";
+import { Button } from "@nextui-org/button";
+import { Badge } from "@nextui-org/badge";
+import { NotificationIcon } from "@/components/notificationIcon";
 
 const categories = [
 	{
@@ -15,25 +25,44 @@ const categories = [
 		url: "#",
 	}
 ]
+
+const ProductsComponent = dynamic(() => import('../../components/products'), {
+	ssr: false,
+	loading: () => <ProductCardSkeleton />
+})
+
+const getBaseClasses = () => {
+	return ["before:bg-default-200"];
+  };
+  
+  const getContentClasses = () => {
+	return [
+	  "py-3 px-4 border border-default-200",
+	  "bg-gradient-to-br from-white to-default-300",
+	  "dark:from-default-100 dark:to-default-50",
+	];
+  };
+  
+
 export default function DocsPage() {
-	const [products, setProducts] = useState<Product[]>([]);
+	const [products, setProducts] = useState<PaginationResponse<Product>>();
 	const searchParams = useSearchParams()
 
-	useEffect(() => {
-		const productToSearch = searchParams.get("search");
-		axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}products/search?name=${productToSearch != undefined ? productToSearch : ""}`)
-			.then((response: any) => {
-				setProducts(response.data)
-			})
-	}, []);
+	const pathname = usePathname();
+
+	const productToSearch = searchParams.get("search");
+	const router = useRouter();
+
+	const pageParamString: string | null = searchParams.get("page");
+	const pageParam: number = pageParamString ? parseInt(pageParamString) : 1;
 
 	return (
 		<div className="flex">
 			<aside className="hidden sm:block pr-[20px] grow">
 				<div>
-					<h2 className="font-bold text-base mt-[32px] mb-[10px]">Todas</h2>
+					<h2 className="font-bold text-base mt-[32px] mb-[10px]">{productToSearch ?? "Todas"}</h2>
 					<p className="text-sm mb-[6px]">
-						<a>10.000 productos</a>
+						<a>{products?.totalElements} productos</a>
 					</p>
 				</div>
 				<div>
@@ -47,11 +76,23 @@ export default function DocsPage() {
 					</ol>
 				</div>
 			</aside>
-			<div className="flex gap-8 flex-wrap w-[928px]">
-				{products.map((item) => (
-					<ProductCard item={item} key={item.name} />
-				))}
+
+			<div className="flex flex-col w-[928px] justify-center">
+				<ProductsComponent />
 			</div>
+			{/*(products !== undefined && products.content.length > 0) ?
+				:
+				<div className="flex w-[928px] justify-center">
+					{products == undefined ?
+						<>
+							<ProductCardSkeleton />
+							<ProductCardSkeleton />
+						</>
+						:
+						<span>No hay productos para mostrar.</span>
+					}
+				</div>
+				*/}
 		</div>
 	)
 }
